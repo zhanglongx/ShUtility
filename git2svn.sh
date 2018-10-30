@@ -1,22 +1,25 @@
 #! /bin/sh
 
-SVN_USER=rd3_git
-
 #
 # Command line handling
 #
 usage()
 {
-	echo "Usage: $0 [options] command"
-	echo "  commit an existing git repository to an EMPTY remote svn repository."
-	echo "  SVN upstreaming repository is not tracked, so sync command may be broken"
+    echo "Usage: $0 [options] command"
+    echo "                           "
+    echo "  commit an existing git repository to an EMPTY remote svn repository."
+    echo "  SVN upstreaming repository is not tracked, so sync command may be broken"
     echo "  if so."
-	echo "  options:"
-	echo "      -v SVN_URL    svn url"
-	echo "  commands: "
-	echo "      init          init a remote svn (url MUST be given)"
-	echo "      sync          synchronize remote git to upstreamed svn (run command"
-    echo "                    'init' first), SVN_URL is ignored"
+    echo "  options:"
+    echo "      -v SVN_URL    svn url"
+    echo "  commands: "
+    echo "      init          init a remote svn (url MUST be given)"
+    echo "                    It should be ran once and only once, as git-svn will "
+    echo "                    keep upstreaming svn repository info"
+    echo "                    All commits come from local git repository, not remote"
+    echo "      sync          synchronize remote git to upstreamed svn (run command"
+    echo "                    'init' first), SVN_URL is ignored."
+    echo "                    Make sure there's no dirty changes"
 
     exit 0
 }
