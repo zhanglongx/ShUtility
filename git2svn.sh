@@ -48,8 +48,8 @@ __is_git()
 
 __rebase_HEAD()
 {
-    # rebase to HEAD for normal git repository actions
-    git rebase origin/HEAD
+    # rebase to master for normal git repository actions
+    git rebase origin/master
 }
 
 init()
@@ -77,6 +77,10 @@ init()
 
 sync()
 {
+    # FIXME: hack for git-svn detecting
+    test -e .git/refs/remotes/origin/trunk || \
+        failed_exit 'not in a git-svn repository, run `git2svn init` first'
+
     # TODO: rebase strategy
     git pull --rebase
 
