@@ -9,10 +9,10 @@ ADD_SVN_REPO=/home/git/work/add_svn_repo.sh
 #
 usage()
 {
-	echo "Usage: $0 [options] NAME"
-	echo "  -u SVN_URL    svn url"
-	echo "  -s SVN_REPO   svn repo [$SVN_REPO_DEFAULT]"
-	echo "  -g GIT_REPO   git repo [$GIT_REPO_DEFAULT]"
+    echo "Usage: $0 [options] NAME"
+    echo "  -u SVN_URL    svn url"
+    echo "  -s SVN_REPO   svn repo [$SVN_REPO_DEFAULT]"
+    echo "  -g GIT_REPO   git repo [$GIT_REPO_DEFAULT]"
     echo "  SVN_URL or SVN_REPO *must* be given"
 
     exit 0
