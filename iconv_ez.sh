@@ -6,7 +6,8 @@
 usage()
 {
     echo "Usage: $0 <file1> <file2> ..."
-    echo "    automatically convert file(s) encoding from gb2312 to utf8, or utf-8 to gb2312"
+    echo "    automatically convert file(s) encoding from gb2312 to utf8, "
+    echo "    or from utf-8 to gb2312"
 
     exit 0
 }
