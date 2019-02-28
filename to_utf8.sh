@@ -20,6 +20,17 @@ while getopts 'h' OPT; do
     esac
 done
 
+conv_inplace()
+{
+    from=$1
+    to=$2
+
+    file=$3
+
+    iconv -f $from -t $to -o $file.new $file
+    mv -f $file.new $file
+}
+
 shift $((OPTIND-1))
 for f in $@; do
     if ! [ -e $f ]; then
@@ -27,11 +38,17 @@ for f in $@; do
         continue
     fi
 
-    if ! [[ `chardet3 $f` =~ 'GB2312' ]]; then
-        echo "$f encoding is not GB2312"
-        continue
+    encoding=`chardet3 $f`
+
+    if [[ $encoding =~ 'GB2312' ]]; then
+        echo "convert $f into utf-8 ... "
+        conv_inplace gb2312 utf8 $f
     fi
 
-    iconv -f gb2312 -t utf-8 -o $f.new $f
-    mv -f $f.new $f
+    if [[ $encoding =~ 'utf-8' ]]; then
+        echo "convert $f into gb2312 ... "
+        conv_inplace utf8 gb2312 $f
+    fi
+
+    echo "passed $f with encoding: $encoding"
 done
