@@ -1,31 +1,30 @@
 #! /bin/sh
 
-SVN_REPO_DEFAULT=/home/git/work/Tegra
-GIT_REPO_DEFAULT=/home/git/repo/Tegra
-ADD_SVN_REPO=/home/git/work/add_svn_repo.sh
+CA_ROOT_PATH=~/Workdir/ca/root
+SITE_PATH=~/Workdir/ca/bvc
+SITE_NAME=bvc
 
 #
 # Command line handling
 #
 usage()
 {
-    echo "Usage: $0 [options] NAME"
-    echo "  -u SVN_URL    svn url"
-    echo "  -s SVN_REPO   svn repo [$SVN_REPO_DEFAULT]"
-    echo "  -g GIT_REPO   git repo [$GIT_REPO_DEFAULT]"
-    echo "  SVN_URL or SVN_REPO *must* be given"
+    echo "Usage: $0 [options] <IP>"
+    echo "  -c CA_ROOT_PATH    CA root path [$CA_ROOT_PATH]"
+    echo "  -s SITE_PATH       Site path [$SITE_PATH]"
+    echo "  -n SITE_NAME       Site Name [$SITE_NAME]"
 
     exit 0
 }
 
-while getopts 'u:s:g:h' OPT; do
+while getopts 'c:s:h' OPT; do
     case $OPT in
-        u)
-            SVN_URL="$OPTARG";;
+        c)
+            CA_ROOT_PATH="$OPTARG";;
         s)
-            SVN_REPO="$OPTARG";;
-        g)
-            GIT_REPO="$OPTARG";;
+            SITE_PATH="$OPTARG";;
+        n)
+            SITE_NAME="$OPTARG";;
         h)
             usage;;
         ?)
@@ -33,67 +32,29 @@ while getopts 'u:s:g:h' OPT; do
     esac
 done
 
-# SVN authentic
-SVN_USER=
-SVN_PASS=
-
 failed_exit()
 {
     echo "$0: $1"
     exit 1
 }
 
-test x$SVN_REPO != x || SVN_REPO=$SVN_REPO_DEFAULT
+[ -d $CA_ROOT_PATH ] || failed_exit "$CA_ROOT_PATH not exists"
+[ -e $CA_ROOT_PATH/openssl.cnf ] || failed_exit "$CA_ROOT_PATH does not contain openssl.cnf"
 
-test x$SVN_URL != x -o x$SVN_REPO != x || usage
-test x$GIT_REPO != x || GIT_REPO=$GIT_REPO_DEFAULT
-
-test `whoami` = 'git' || failed_exit "$0 must run under account 'git'"
-
-sub_git()
-{
-    name=$1
-    url=$2
-
-    # append .git
-    test $name != ${name%*.git} || name=$name.git
-
-    name=$GIT_REPO/$name
-
-    if test -d $name; then
-        echo "$name already exist" 
-        return 1
-    fi
-
-    mkdir -p $name
-
-    subgit configure --layout auto --trunk trunk $url $name && \
-        printf "\n$SVN_USER $SVN_PASS\n" >> $name/subgit/passwd && \
-        sed -i 's/shared = false/shared = true/' $name/subgit/config && \
-        subgit install $name 
-
-    cd $name && git config core.sharedRepository group
-
-    name=`basename $name`
-    echo "$name installed successfully"
-
-    return 0
-}
-
-if test x$SVN_REPO != x; then
-    __svn_url=`svn info --show-item url $SVN_REPO`
-    test $? = 0 || failed_exit "$SVN_REPO is no a svn repo"
-fi
-
-test -d $GIT_REPO || failed_exit "$GIT_REPO does not exist"
+[ -d $SITE_PATH ] || failed_exit "$SITE_PATH not exists"
+[ -e $SITE_PATH/privkey.pem ] || failed_exit "$SITE_PATH does not contain privkey.pem"
+[ -e $SITE_PATH/openssl.cnf ] || failed_exit "$SITE_PATH does not contain openssl.cnf"
 
 shift $((OPTIND-1))
-for name in $@; do
-    if test x$SVN_URL != x; then
-        sub_git $name $SVN_URL
-    elif test x$SVN_REPO != x; then
-        name=${name%*.git}
-        $ADD_SVN_REPO $SVN_REPO $name
-        sub_git $name $__svn_url/$name
-    fi
-done
+IP=$1
+
+[ x$IP != x ] || failed_exit "IP not specified"
+
+sed -i "s/\(commonName\s*=\).*$/\1 $IP/" $SITE_PATH/openssl.cnf
+sed -i "s/\(IP.1\s*=\).*$/\1 $IP/" $SITE_PATH/openssl.cnf
+openssl req -new -key $SITE_PATH/privkey.pem -out $SITE_PATH/$SITE_NAME.csr -config $SITE_PATH/openssl.cnf
+openssl ca -in $SITE_PATH/$SITE_NAME.csr -out $SITE_PATH/$SITE_NAME.crt -config $CA_ROOT_PATH/openssl.cnf
+
+openssl pkcs12 -export -in $SITE_PATH/$SITE_NAME.crt -inkey $SITE_PATH/privkey.pem -out $SITE_PATH/$SITE_NAME.p12
+keytool -importkeystore -srckeystore $SITE_PATH/$SITE_NAME.p12 -srcstoretype PKCS12 -destkeystore $SITE_PATH/$SITE_NAME.keystore -deststoretype JKS
+
