@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 CA_ROOT_PATH=~/Workdir/ca/root
 SITE_PATH=~/Workdir/ca/bvc
@@ -9,7 +9,7 @@ SITE_NAME=bvc
 #
 usage()
 {
-    echo "Usage: $0 [options] <IP>"
+    echo "Usage: $0 [options] <IP/DNS>"
     echo "  -c CA_ROOT_PATH    CA root path [$CA_ROOT_PATH]"
     echo "  -s SITE_PATH       Site path [$SITE_PATH]"
     echo "  -n SITE_NAME       Site Name [$SITE_NAME]"
@@ -48,10 +48,15 @@ failed_exit()
 shift $((OPTIND-1))
 IP=$1
 
-[ x$IP != x ] || failed_exit "IP not specified"
+[ x$IP != x ] || failed_exit "IP/DNS not specified"
 
 sed -i "s/\(commonName\s*=\).*$/\1 $IP/" $SITE_PATH/openssl.cnf
-sed -i "s/\(IP.1\s*=\).*$/\1 $IP/" $SITE_PATH/openssl.cnf
+# FIXME: last line thing ...
+if [[ $IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    sed -i "$ s/^.*$/IP.1 = $IP/" $SITE_PATH/openssl.cnf
+else
+    sed -i "$ s/^.*$/DNS.1 = $IP/" $SITE_PATH/openssl.cnf
+fi
 openssl req -new -key $SITE_PATH/privkey.pem -out $SITE_PATH/$SITE_NAME.csr -config $SITE_PATH/openssl.cnf
 openssl ca -in $SITE_PATH/$SITE_NAME.csr -out $SITE_PATH/$SITE_NAME.crt -config $CA_ROOT_PATH/openssl.cnf
 
