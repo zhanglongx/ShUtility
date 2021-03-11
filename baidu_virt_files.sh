@@ -1,7 +1,5 @@
 #! /bin/bash
 
-set -x
-
 OUTPUT_DIR="/mnt/f"
 SQLITE_FILE="/mnt/d/Users/zhlx/AppData/Roaming/baidu/BaiduNetdisk/users/53eb214008e09e15044b661ce42bdaff/BaiduYunCacheFileV0.db"
 
