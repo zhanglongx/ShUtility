@@ -50,9 +50,6 @@ download_zip()
          --output .tmp/$name.zip
 }
 
-rm -rf .tmp/
-mkdir -p .tmp
-
 for p in ${PROJECTS[@]}; do
     id=${p%,*}
     name=${p#*,}
