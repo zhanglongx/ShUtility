@@ -9,9 +9,10 @@ usage()
 {
     echo "Usage: $0 [options] PATH"
     echo "  -i     		  print info only"
-	echo "  converts a git repository all text file(s) to LF and utf-8"
+	echo "  converts a git repository all text file(s) to LF and utf-8 (noBOM)"
 	echo ""
-	echo "NOTE: UTF-8 bom cannot be handled properly"
+	echo "NOTE: all not UTF-8 is treated as GB2312, it may lead"
+	echo "		ill-decision"
     echo "  PATH *must* be given"
 
     exit 0
@@ -65,6 +66,7 @@ isLF()
 }
 
 RET_UTF8=0
+RET_NOBOM=1
 isUTF8()
 {
 	file=$1
@@ -72,9 +74,14 @@ isUTF8()
 	[ -e $file ] || return
 
 	RET_UTF8=0
+	RET_NOBOM=1
 
 	if chardet3 $file | egrep -iq '(utf|ascii)'; then
 		RET_UTF8=1
+	fi
+
+	if chardet3 $file | egrep -iq 'utf-8-sig'; then
+		RET_NOBOM=0
 	fi
 }
 
@@ -94,10 +101,10 @@ for f in `git -C $GITREPO ls-files`; do
 	isLF $f
 	isUTF8 $f
 
-	if [ $RET_ISLF = 0 ] || [ $RET_UTF8 = 0 ]; then
-		echo "$f LF: $RET_ISLF UTF-8: $RET_UTF8"
+	if [ $RET_ISLF = 0 ] || [ $RET_UTF8 = 0 ] || [ $RET_NOBOM = 0 ]; then
+		echo "$f LF: $RET_ISLF UTF-8: $RET_UTF8 noBOM: $RET_NOBOM"
 		if [ $ARG_INFO = 0 ]; then
-			read -p "Convert $f into lf and utf-8 [y/n]" choice
+			read -p "Convert $f into lf and utf-8 (noBOM) [y/n]" choice
 			if [ $choice = 'y' ]; then
 				if [ $RET_ISLF = 0 ]; then
 					dos2unix $f
@@ -107,6 +114,10 @@ for f in `git -C $GITREPO ls-files`; do
 					# FIXME:
 					iconv -f gb2312 -t utf8 -o ${f}.new $f
 					mv -f ${f}.new $f
+				fi
+
+				if [ $RET_NOBOM = 0 ]; then
+					sed -i '1s/^\xEF\xBB\xBF//' $f
 				fi
 			fi
 		fi
