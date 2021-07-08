@@ -9,7 +9,9 @@ usage()
 {
     echo "Usage: $0 [options] PATH"
     echo "  -i     		  print info only"
-	echo "  convert a git repository text file(s) to LF and utf-8"
+	echo "  converts a git repository all text file(s) to LF and utf-8"
+	echo ""
+	echo "NOTE: UTF-8 bom cannot be handled properly"
     echo "  PATH *must* be given"
 
     exit 0
@@ -97,11 +99,15 @@ for f in `git -C $GITREPO ls-files`; do
 		if [ $ARG_INFO = 0 ]; then
 			read -p "Convert $f into lf and utf-8 [y/n]" choice
 			if [ $choice = 'y' ]; then
-				dos2unix $f
+				if [ $RET_ISLF = 0 ]; then
+					dos2unix $f
+				fi
 
-				# FIXME:
-				iconv -f gb2312 -t utf8 -o ${f}.new $f
-				mv -f ${f}.new $f
+				if [ $RET_UTF8 = 0 ]; then
+					# FIXME:
+					iconv -f gb2312 -t utf8 -o ${f}.new $f
+					mv -f ${f}.new $f
+				fi
 			fi
 		fi
 	fi
