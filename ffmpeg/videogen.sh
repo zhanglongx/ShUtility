@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-set -x
-
 VIDEOSIZE=1920x1080
 RATE=25
 VCODEC=h264
