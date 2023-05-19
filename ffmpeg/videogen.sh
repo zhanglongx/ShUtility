@@ -32,7 +32,7 @@ which ffmpeg > /dev/null 2>&1 || {
 UNKNOWN=()
 
 # XXX: why not getopts? because we want parse our own arguments,
-#      then pass rest arguments to ffmpeg
+#      and prevent getopts from parsing unknown arguments
 while (( $# )); do
   case $1 in
     -h|--help)
