@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+VERSION=1.0.0
+
 VIDEOSIZE=1920x1080
 RATE=25
 VCODEC=h264
@@ -15,12 +17,13 @@ usage()
     echo "  -a     		  audio codec, default: $ACODEC"
     echo "  -b     		  bitrate, default: $BITRATE"
     echo "  -h     		  print this help"
+    echo "  --version   print version"
     echo "  output *must* be given"
 
     exit 0
 }
 
-unknown=()
+UNKNOWN=()
 
 # XXX: why not getopts? because we want parse our own arguments,
 #      then pass rest arguments to ffmpeg
@@ -75,6 +78,10 @@ while (( $# )); do
         exit 1
       fi
       ;;
+    --version)
+      echo "videogen version $VERSION"
+      exit
+      ;;
     -*|--*)
       unknown+=("$1")
       shift
@@ -94,4 +101,4 @@ ffmpeg -re -f lavfi -i "aevalsrc=if(eq(floor(t)\,ld(2))\,st(0\,random(4)*3000+10
       -acodec $ACODEC -vcodec $VCODEC -pix_fmt yuv420p -g $RATE \
       $XCODECPARAM \
       -b:v $BITRATE -bufsize `echo $BITRATE | perl -ne 'printf "%.0f%s", $1 * 1.5, $2 if /(\d+)([kmg])/i'` \
-      ${unknown[@]}
+      ${UNKNOWN[@]}
