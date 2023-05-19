@@ -84,7 +84,7 @@ while (( $# )); do
         exit 1
       fi
       ;;
-    --version)
+    -version|--version)
       echo "videogen version $VERSION"
       ffmpeg -version
       exit
