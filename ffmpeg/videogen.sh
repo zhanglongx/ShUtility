@@ -90,11 +90,11 @@ while (( $# )); do
       exit
       ;;
     -*|--*)
-      unknown+=("$1")
+      UNKNOWN+=("$1")
       shift
       ;;
     *)
-      unknown+=("$1")
+      UNKNOWN+=("$1")
       shift
       ;;
   esac
