@@ -23,6 +23,12 @@ usage()
     exit 0
 }
 
+# check if ffmpeg exists
+which ffmpeg > /dev/null 2>&1 || {
+    echo "ERROR: ffmpeg not found"
+    exit 1
+}
+
 UNKNOWN=()
 
 # XXX: why not getopts? because we want parse our own arguments,
@@ -80,6 +86,7 @@ while (( $# )); do
       ;;
     --version)
       echo "videogen version $VERSION"
+      ffmpeg -version
       exit
       ;;
     -*|--*)
