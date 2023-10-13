@@ -30,18 +30,36 @@ failed_exit()
 
 [ x$TOKEN != x ] || failed_exit "no token given"
 
+[ -d .tmp ] || mkdir -p .tmp
+
+rm -rf .tmp/*
+
 PROJECTS=(
-    "492,Antares"
-    "716,Dianbo2PlayerJoiner"
-    "511,xStreamPlayer"
-    "510,UserPlayerJoiner" 
-    "500,Monitor_RelationService"
-    "525,WSCascade"
-    "522,WSV3"
+    # Web & framework
+    "613,qt_terminal"
+    "1024,web-lq"
+    "851,zh-admin"
+    "805,xingjie-web"
+    "852,zh-client2.0"
+    "912,business-terminal"
+
+    # tetris-2.0
+    "799,tetris2.0"
+
+    # venus
+    "942,MatrixJoiner"
+    "1025,Suma9XDeviceJoiner"
+    "988,DeviceMaintenceService"
+    "1037,KSSDevJoiner"
+    "941,StreamTransporter "
+
+    # etc
+    "1051,zh-xingjie-cascade-system"
+    "894,XingJieSDK"
+    "968,ScreenCaptureService"
 )
 
-download_zip()
-{
+download_zip() {
     id=$1
     name=$2
 
@@ -50,9 +68,18 @@ download_zip()
          --output .tmp/$name.zip
 }
 
+declare -A duplicate
+
 for p in ${PROJECTS[@]}; do
     id=${p%,*}
     name=${p#*,}
 
+    if [[ -n "${duplicate[$id]}" ]]; then
+        echo "$id: $name already exist"
+        continue
+    fi
+
     download_zip $id $name
+
+    duplicate[$id]=1
 done
